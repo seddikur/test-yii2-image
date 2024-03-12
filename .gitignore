@@ -37,4 +37,4 @@ tests/_support/_generated
 
 .docker
 
-.idea
+.idea/sql
