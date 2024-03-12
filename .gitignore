@@ -35,6 +35,6 @@ tests/_support/_generated
 #vagrant folder
 /.vagrant
 
-.docker
+.docker/sql
 
-.idea/sql
+.idea
