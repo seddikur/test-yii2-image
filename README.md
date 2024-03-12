@@ -23,3 +23,23 @@
 - получить данные о загруженном файле по id в json
   Код задания необходимо выложить на github/gitlab/bitbucket.
   Бонусом будет возможность просмотра результата в общем доступе (например vds)
+
+# Порядок установки проекта
+
+* Клонирование проекта `` https://github.com/seddikur/test-yii2-image.git``
+* Запуск Docker `` docker compose up -d ``
+* Переход в контейнер  `` docker-compose exec -it php bash ``
+* Запуск установки расширений yii2 `` composer install ``
+* Запуск миграций `` yii migrate ``
+
+http://localhost:8000/v1/
+
+GET /article: получение постранично списка всех статей;
+
+POST /article: создание новой статьи;
+
+GET /article/123: получение информации по статьие с id равным 123;
+
+PATCH /article/123 и PUT /article/123: изменение информации по статье с id равным 123;
+
+DELETE /article/123: удаление статьи с id равным 123;
