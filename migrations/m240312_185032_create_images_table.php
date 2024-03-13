@@ -22,8 +22,7 @@ class m240312_185032_create_images_table extends Migration
             'id' => $this->primaryKey(),
             'filename' => $this->string(100)->notNull()->comment('Название'),
             'img_url' => $this->string()->notNull()->comment('Путь до изображения'),
-            'is_cover' => $this->integer()->defaultValue(1)->comment('Является ли это изображение текущим для вывода'),
-            'created_at' => $this->integer()->notNull()->comment('Дата создания'),
+            'created_at' => $this->integer()->comment('Дата создания'),
         ], $tableOptions);
     }
 

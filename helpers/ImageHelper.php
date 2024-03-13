@@ -2,10 +2,13 @@
 
 namespace app\helpers;
 
-
+use app\models\Images;
 use Exception;
 use Symfony\Component\Filesystem\Filesystem;
 use Yii;
+use Imagine\Image\Box;
+use Imagine\Image\ImageInterface;
+use yii\imagine\Image;
 
 /**
  *

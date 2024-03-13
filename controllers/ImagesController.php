@@ -5,9 +5,13 @@ namespace app\controllers;
 use app\models\Images;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveRecord;
+use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\UploadedFile;
+use Yii;
+use Exception;
 
 /**
  * ImagesController implements the CRUD actions for Images model.
@@ -28,12 +32,12 @@ class ImagesController extends Controller
                         'delete' => ['POST'],
                     ],
                 ],
-                'timestamp' => [
-                    'class' => 'yii\behaviors\TimestampBehavior',
-                    'attributes' => [
-                        ActiveRecord::EVENT_BEFORE_INSERT => ['created_at'],
-                    ],
-                ],
+//                'timestamp' => [
+//                    'class' => 'yii\behaviors\TimestampBehavior',
+//                    'attributes' => [
+//                        ActiveRecord::EVENT_BEFORE_INSERT => ['created_at'],
+//                    ],
+//                ],
             ]
 
         );
@@ -88,10 +92,24 @@ class ImagesController extends Controller
         $model = new Images();
 
         if ($this->request->isPost) {
-//            if ($model->load($this->request->post()) && $model->save()) {
-            if ($model->load($this->request->post()) ) {
-                $model->upload();
-                return $this->redirect(['view', 'id' => $model->id]);
+            if ($model->load($this->request->post())) {
+                try {
+                    //Сохранить загруженное изображение по ссылке
+                    $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
+                        Yii::$app->request->post('current_img_url') :
+                        Yii::$app->request->post('img_url');
+                    if ($imgUrlStr) {
+                        $imgUrls = explode(';,;', $imgUrlStr);
+                        $model->loadImagesByUrl($imgUrls);
+                    } else {
+                        //Сохранить загруженное изображение при добалении
+                        $model->loadImages(UploadedFile::getInstances($model, 'images'));
+                    }
+                } catch (Exception $e) {
+                    var_dump($e->getMessage());
+                }
+                \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
+                return $this->redirect(['index']);
             }
         } else {
             $model->loadDefaultValues();
@@ -113,9 +131,29 @@ class ImagesController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
+        if ($this->request->isPost && $model->load($this->request->post()) ) {
+
+                try {
+                    //Сохранить загруженное изображение по ссылке
+                    $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
+                        Yii::$app->request->post('current_img_url') :
+                        Yii::$app->request->post('img_url');
+                    if ($imgUrlStr) {
+                        $imgUrls = explode(';,;', $imgUrlStr);
+                        $model->loadImagesByUrl($imgUrls);
+                    } else {
+                        //Сохранить загруженное изображение при добалении
+                        $model->loadImages(UploadedFile::getInstances(new Images(), 'images'));
+                    }
+
+                } catch (Exception $e) {
+                    echo \yii\helpers\Json::encode($model->getErrors());
+                    die();
+                }
+             \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
+                return $this->redirect(['index']);
+            }
+
 
         return $this->render('update', [
             'model' => $model,

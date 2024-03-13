@@ -3,10 +3,10 @@
 namespace app\models;
 
 use app\helpers\ImageHelper;
-use backend\modules\catalog\models\image\ItemImage;
 use Symfony\Component\Filesystem\Filesystem;
 use Yii;
 use yii\helpers\VarDumper;
+use yii\web\UploadedFile;
 
 /**
  * This is the model class for table "images".
@@ -14,7 +14,6 @@ use yii\helpers\VarDumper;
  * @property int $id
  * @property string $filename Название
  * @property string $img_url Путь до изображения
- * @property int|null $is_cover Является ли это изображение текущим для вывода
  * @property int $created_at Дата создания
  */
 class Images extends \yii\db\ActiveRecord
@@ -32,7 +31,10 @@ class Images extends \yii\db\ActiveRecord
      * Путь для загрузки изображения
      * @var string
      */
-    public static $uploadBasePath = '@webroot/uploads/';
+    public static $uploadBasePath = '@webroot/uploads';
+
+    /** @var string $urlPrefix Префикс URL для изображений  */
+    public static $urlPrefix = '/uploads';
 
     /**
      * Наименование таблицы
@@ -50,9 +52,8 @@ class Images extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['filename', 'img_url', 'created_at'], 'required'],
+            [['filename', 'img_url'], 'required'],
             [['created_at'], 'integer'],
-            [['is_cover'], 'boolean'],
             [['filename', 'img_url'], 'string', 'max' => 100],
             [['images'], 'safe'],
             [['images'], 'file',
@@ -81,42 +82,29 @@ class Images extends \yii\db\ActiveRecord
     /**
      * Сохранить загруженное изображение
      */
-    public function upload()
+    public function saveFiles()
     {
         $dirPath = self::$uploadBasePath . $this->id;
         $location = Yii::getAlias($dirPath);
         // Директория для загрузки изображения
         (new Filesystem)->mkdir($location, 0755);
 
-        if(!$this->img_url) {
-            $localPath = $location . DIRECTORY_SEPARATOR . $this->filename;
-//            VarDumper::dump($localPath); die();
-            $this->uploadedFile->saveAs($localPath);
-        } else {
-            $parsed = parse_url($this->img_url);
-            // Для доменов на русском
-//            $parsed['host'] = idn_to_ascii($parsed['host']);
-//            $this->img_url = $this->unparse($parsed);
 
-            $img = $this->convertImageToBase64($this->img_url);
-            $img = str_replace('data:image/png;base64,', '', $img);
-            $img = str_replace(' ', '+', $img);
-            $data = base64_decode($img);
             $localPath = $location . DIRECTORY_SEPARATOR . $this->filename;
-            file_put_contents($localPath, $data);
-        }
+            $this->uploadedFile->saveAs($localPath);
+
         // Генерируем миниатюру
         $thumbPath = Yii::getAlias(self::$uploadBasePath . $this->id . '/thumbs');
         ImageHelper::thumbnail($localPath, 100, 100, $thumbPath);
 
-        // Генерируем превью
+      //   Генерируем превью
         $fs = new Filesystem();
         if($fs->exists($localPath)) {
-            list($width, $height) = getimagesize($localPath);
-            (new ImageHelper())->generateImg($width, $height, 200, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/XS'), $fs);
-            (new ImageHelper())->generateImg($width, $height, 300, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/SM'), $fs);
-            (new ImageHelper())->generateImg($width, $height, 400, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/MD'), $fs);
-            (new ImageHelper())->generateImg($width, $height, 500, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/LG'), $fs);
+//            list($width, $height) = getimagesize($localPath);
+//            (new ImageHelper())->generateImg($width, $height, 200, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/XS'), $fs);
+//            (new ImageHelper())->generateImg($width, $height, 300, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/SM'), $fs);
+//            (new ImageHelper())->generateImg($width, $height, 400, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/MD'), $fs);
+//            (new ImageHelper())->generateImg($width, $height, 500, $localPath, Yii::getAlias(self::$uploadBasePath . $this->category_id . '/thumbs/LG'), $fs);
         }
     }
 
@@ -127,7 +115,6 @@ class Images extends \yii\db\ActiveRecord
      */
     public static function convertImageToBase64($path) :? string
     {
-
         $url = $path;
         $curl_handle=curl_init();
         curl_setopt($curl_handle, CURLOPT_URL,$url);
@@ -135,14 +122,11 @@ class Images extends \yii\db\ActiveRecord
         curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Get img');
         $img = curl_exec($curl_handle);
-        $curlError = curl_error($curl_handle);
         curl_close($curl_handle);
-        if ($img) {
+        if($img) {
             $imageData = base64_encode($img);
             return "data:image/png;base64,{$imageData}";
         }
-
-        Yii::error("Error whiling download catalog item image - " . $curlError);
         return null;
     }
 
@@ -152,9 +136,9 @@ class Images extends \yii\db\ActiveRecord
      */
     public function getImagePath()
     {
-        return ($this->useFileImageWithWatermark() && is_file(\Yii::getAlias($this->getDirPath()) . $this->filename_watermark))
-            ? '/uploads/catalog/' . $this->item_id . '/' . $this->filename_watermark
-            : '/uploads/catalog/' . $this->item_id . '/' . $this->filename;
+        return (is_file(\Yii::getAlias($this->getDirPath()) . $this->filename))
+            ? '/uploads/' . $this->id . '/' . $this->filename
+            : '';
     }
 
     /**
@@ -163,9 +147,9 @@ class Images extends \yii\db\ActiveRecord
      */
     public function getThumb()
     {
-        return ($this->useFileImageWithWatermark() && is_file(\Yii::getAlias($this->getDirPath()) . 'thumbs/' . $this->filename_watermark))
-            ? '/uploads/catalog/' . $this->item_id . '/thumbs/' . $this->filename_watermark
-            : '/uploads/catalog/' . $this->item_id . '/thumbs/' . $this->filename;
+        return (is_file(\Yii::getAlias($this->getDirPath()) . 'thumbs/' . $this->filename))
+            ? '/uploads/' . $this->id . '/thumbs/' . $this->filename
+            : '';
     }
 
     /**
@@ -174,7 +158,7 @@ class Images extends \yii\db\ActiveRecord
      */
     public function getDirPath()
     {
-        return self::$uploadBasePath . $this->item_id . DIRECTORY_SEPARATOR;
+        return self::$uploadBasePath . $this->id . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -183,6 +167,53 @@ class Images extends \yii\db\ActiveRecord
      */
     public function getFullPath()
     {
-        return self::$uploadBasePath . $this->item_id . DIRECTORY_SEPARATOR . $this->filename;
+        return self::$uploadBasePath . $this->id . DIRECTORY_SEPARATOR . $this->filename;
+    }
+
+    /**
+     * Загрузка изображений.
+     * @param UploadedFile[] $images
+     */
+    public function loadImages($images): void
+    {
+        $imagesModels = [];
+        $transaction = Yii::$app->db->beginTransaction();
+        foreach ($images as $file) {
+            $modelImage = new Images;
+            $modelImage->filename = \md5($file->baseName) . '.' . $file->extension;
+            $modelImage->img_url = self::$urlPrefix;
+            $modelImage->created_at = time();
+            $modelImage->uploadedFile = $file;
+            $imagesModels[] = $modelImage;
+            $modelImage->saveFiles($images);
+            $modelImage->save();
+        }
+        $transaction->commit();
+        $this->populateRelation('images', $imagesModels);
+    }
+
+    /**
+     * Загрузка изображений через url.
+     * @param array $imageUrl
+     */
+    public function loadImagesByUrl($imageUrl) : void
+    {
+
+        $imagesModels = [];
+        $transaction = Yii::$app->db->beginTransaction();
+        foreach ($imageUrl as $url) {
+            if (mb_strtolower(substr($url, 0, 1)) == ',') {
+                $url = substr($url, 1);
+            }
+            $url = trim($url);
+
+            $filename = md5(uniqid('', true));
+            $modelImage = new Images();
+            $modelImage->filename = $filename . '.png';
+            $modelImage->img_url = $url;
+            $imagesModels[] = $modelImage;
+        }
+        $transaction->commit();
+        $this->populateRelation('images', $imagesModels);
     }
 }
