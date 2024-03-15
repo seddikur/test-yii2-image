@@ -30,7 +30,7 @@
 * Запуск Docker `` docker compose up -d ``
 * Переход в контейнер  `` docker-compose exec -it php bash ``
 * Запуск установки расширений yii2 `` composer install ``
-* Запуск миграций `` yii migrate ``
+* Запуск миграций `` php yii migrate ``
 
 http://localhost:8000/v1/
 

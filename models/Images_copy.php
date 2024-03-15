@@ -9,14 +9,12 @@ use yii\helpers\VarDumper;
 use yii\web\UploadedFile;
 
 /**
- * Модель хранит данные о картинках.
+ * This is the model class for table "images".
  *
  * @property int $id
  * @property string $filename Название
  * @property string $img_url Путь до изображения
- * @property int|null $by_default Картинка по умолчанию
- * @property int|null $id_objects id objects
- * @property int|null $created_at Дата создания
+ * @property int $created_at Дата создания
  */
 class Images extends \yii\db\ActiveRecord
 {
@@ -55,13 +53,8 @@ class Images extends \yii\db\ActiveRecord
     {
         return [
             [['filename', 'img_url'], 'required'],
+            [['created_at'], 'integer'],
             [['filename', 'img_url'], 'string', 'max' => 100],
-            [['filename', 'img_url'], 'required'],
-            ['filename', 'unique'], //проверка на уникальность
-
-            [['by_default', 'id_objects', 'created_at'], 'integer'],
-
-            [['img_url'], 'string', 'max' => 255],
             [['images'], 'safe'],
             [['images'], 'file',
                 'checkExtensionByMimeType' => false,
@@ -83,8 +76,6 @@ class Images extends \yii\db\ActiveRecord
             'id' => 'ID',
             'filename' => 'Название',
             'img_url' => 'Путь до изображения',
-            'by_default' => 'Картинка по умолчанию',
-            'id_objects' => 'id objects',
             'created_at' => 'Дата создания',
         ];
     }

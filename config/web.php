@@ -12,6 +12,12 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        'imgload' => [
+            'class' => 'agent\components\Imgload'
+        ],
+        'noty' => [
+            'class' => 'agent\components\NotyComponent'
+        ],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'P1h5Lfbht5b8rGFDSlAwbdcXTMtkI0jN',

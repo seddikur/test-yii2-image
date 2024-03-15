@@ -4,12 +4,14 @@
 /** @var string $content */
 
 use app\assets\AppAsset;
+use app\assets\BootstrapIconsAsset;
 use app\widgets\Alert;
 use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
 use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
 
+BootstrapIconsAsset::register($this);
 AppAsset::register($this);
 
 $this->registerCsrfMetaTags();
@@ -41,6 +43,7 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         'items' => [
             ['label' => 'Home', 'url' => ['/site/index']],
             ['label' => 'Images', 'url' => ['/images/index']],
+            ['label' => 'Objects', 'url' => ['/objects/index']],
             ['label' => 'About', 'url' => ['/site/about']],
             ['label' => 'Contact', 'url' => ['/site/contact']],
             Yii::$app->user->isGuest
