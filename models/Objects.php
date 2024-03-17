@@ -16,6 +16,10 @@ use yii\behaviors\TimestampBehavior;
 class Objects extends \yii\db\ActiveRecord
 {
 
+    /**
+     * Массив с изображениями
+     * @var \yii\web\UploadedFile[]
+     */
     public $imageFile;
 
     /**
@@ -38,12 +42,12 @@ class Objects extends \yii\db\ActiveRecord
             [['created_at'], 'integer'],
             [['title'], 'string', 'max' => 255],
 
-            [['imageFile'], 'image',
-                'extensions' => ['jpg', 'jpeg', 'png', 'gif'],
-                'checkExtensionByMimeType' => true,
-                'maxSize' => 1024000, // 500 килобайт = 500 * 1024 байта = 512 000 байт
-                'tooBig' => 'Лимит 1МB'
-            ],
+//            [['imageFile'], 'image',
+//                'extensions' => ['jpg', 'jpeg', 'png', 'gif'],
+//                'checkExtensionByMimeType' => true,
+//                'maxSize' => 1024000, // 500 килобайт = 500 * 1024 байта = 512 000 байт
+//                'tooBig' => 'Лимит 1МB'
+//            ],
         ];
     }
 

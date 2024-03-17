@@ -24,7 +24,7 @@ class Images extends \yii\db\ActiveRecord
      * Массив с изображениями
      * @var \yii\web\UploadedFile[]
      */
-    public $images;
+    public $imageFile;
 
     /** @var \yii\web\UploadedFile $uploadedFile */
     public $uploadedFile;
@@ -62,8 +62,8 @@ class Images extends \yii\db\ActiveRecord
             [['by_default', 'id_objects', 'created_at'], 'integer'],
 
             [['img_url'], 'string', 'max' => 255],
-            [['images'], 'safe'],
-            [['images'], 'file',
+            [['imageFile'], 'safe'],
+            [['imageFile'], 'file',
                 'checkExtensionByMimeType' => false,
 //                'extensions' => 'png, jpg, jpeg',
                 'extensions' => ['jpg', 'jpeg', 'png', 'gif'],
@@ -90,7 +90,29 @@ class Images extends \yii\db\ActiveRecord
     }
 
     /**
-     * Сохранить загруженное изображение
+     * Загрузка изображений и сохранение в базу данных.
+     * @param UploadedFile[] $images
+     */
+    public function loadImages($images): void
+    {
+        VarDumper::dump($images, 10, true); die();
+        $imagesModels = [];
+        $transaction = Yii::$app->db->beginTransaction();
+        foreach ($images as $file) {
+            $modelImage = new Images;
+            $modelImage->filename = \md5($file->baseName) . '.' . $file->extension;
+            $modelImage->img_url = self::$urlPrefix;
+            $modelImage->created_at = time();
+            $modelImage->uploadedFile = $file;
+            $imagesModels[] = $modelImage;
+            $modelImage->saveFiles();
+            $modelImage->save();
+        }
+        $transaction->commit();
+        $this->populateRelation('images', $imagesModels);
+    }
+    /**
+     * Сохранить загруженное изображение в директорию
      */
     public function saveFiles()
     {
@@ -178,28 +200,6 @@ class Images extends \yii\db\ActiveRecord
     public function getFullPath()
     {
         return self::$uploadBasePath . $this->id . DIRECTORY_SEPARATOR . $this->filename;
-    }
-
-    /**
-     * Загрузка изображений.
-     * @param UploadedFile[] $images
-     */
-    public function loadImages($images): void
-    {
-        $imagesModels = [];
-        $transaction = Yii::$app->db->beginTransaction();
-        foreach ($images as $file) {
-            $modelImage = new Images;
-            $modelImage->filename = \md5($file->baseName) . '.' . $file->extension;
-            $modelImage->img_url = self::$urlPrefix;
-            $modelImage->created_at = time();
-            $modelImage->uploadedFile = $file;
-            $imagesModels[] = $modelImage;
-            $modelImage->saveFiles($images);
-            $modelImage->save();
-        }
-        $transaction->commit();
-        $this->populateRelation('images', $imagesModels);
     }
 
     /**

@@ -6,6 +6,7 @@ use yii\bootstrap5\ActiveForm;
 /** @var yii\web\View $this */
 /** @var app\models\Images $model */
 /** @var yii\widgets\ActiveForm $form */
+/** @var $upload \app\models\Images */
 
 $form = ActiveForm::begin([
 //    'enableClientValidation' => false,
@@ -77,7 +78,7 @@ $form = ActiveForm::begin([
                         'items' => [
                             [
                                 'label' => 'Загрузка с устройства',
-                                'content' => $this->render('_device', ['model' => $model, 'form' => $form]),
+                                'content' => $this->render('_device', [ 'form' => $form, 'upload' => $upload]),
                                 'active' => true
                             ],
                             [

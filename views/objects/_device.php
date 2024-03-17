@@ -2,11 +2,11 @@
 
 use kartik\file\FileInput;
 
-/** @var app\models\Objects $model */
+/** @var \app\models\Images $upload */
 /** @var yii\widgets\ActiveForm $form */
 ?>
  <!-- START Форма для загрузки изображений -->
-            <?= $form->field($model, 'imageFile[]')->widget(FileInput::class, [
+            <?= $form->field($upload, 'imageFile[]')->widget(FileInput::class, [
                 'options' => [
                     'multiple'=>true
                 ],

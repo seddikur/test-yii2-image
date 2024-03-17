@@ -2,8 +2,11 @@
 
 namespace app\controllers;
 
+use app\models\Images;
 use app\models\Objects;
 use app\models\ObjectsSearch;
+use vova07\imperavi\actions\UploadFileAction;
+use yii\base\InvalidArgumentException;
 use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -33,6 +36,30 @@ class ObjectsController extends Controller
                 ],
             ]
         );
+    }
+
+    /**
+     * @inheritdoc
+     * @throws InvalidArgumentException
+     */
+    public function actions(): array
+    {
+        return [
+            // Загрузка изображений из редактора
+//            'image-upload' => [
+//                'class' => UploadFileAction::class,
+//                'url' => '/uploads/catalog_description/',
+//                'path' => Yii::getAlias('@backend/web/uploads/catalog_description'),
+//                'replace' => true
+//            ],
+//            'file-upload' => [
+//                'class' => UploadFileAction::class,
+//                'url' => '/uploads/catalog_description/',
+//                'path' => Yii::getAlias('@backend/web/uploads/catalog_description'),
+//                'uploadOnlyImage' => false,
+//            ],
+        ];
+
     }
 
     /**
@@ -72,43 +99,41 @@ class ObjectsController extends Controller
     public function actionCreate()
     {
         $model = new Objects();
+        $upload = new Images();
 
         if ($model->load(\Yii::$app->request->post()) && $model->validate()) {
-//            if ($image = UploadedFile::getInstance($model, 'imageFile')) {
-//                $model->imageFile = $model->uploadImage($image, $model->imageFile);
-//            }
 
-            try {
-                //Сохранить загруженное изображение по ссылке
-                $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
-                    Yii::$app->request->post('current_img_url') :
-                    Yii::$app->request->post('img_url');
-                if ($imgUrlStr) {
-                    $imgUrls = explode(';,;', $imgUrlStr);
-                    $model->loadImagesByUrl($imgUrls);
-                } else {
-//                    VarDumper::dump($this->request->post());
-                    //Сохранить загруженное изображение при добалении
-                    if ($image = UploadedFile::getInstance($model, 'imageFile')) {
-                        $model->imageFile = Yii::$app->imgload->LoadImages($image);
-                        VarDumper::dump($model->imageFile); die();
-                    }
-//                    VarDumper::dump($model->imageFile); die();
-                    //запись название файла в базу
+            VarDumper::dump($upload->validate(),10, true); die();
+            if ($upload->load(\Yii::$app->request->post()) && $upload->validate()) {
+                try {
+                    //Сохранить загруженное изображение по ссылке
+                    $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
+                        Yii::$app->request->post('current_img_url') :
+                        Yii::$app->request->post('img_url');
+                    if ($imgUrlStr) {
+                        $imgUrls = explode(';,;', $imgUrlStr);
+                        $upload->loadImagesByUrl($imgUrls);
+                    } else {
+                        //Сохранить загруженное изображение при добалении
+                        $upload->loadImages(UploadedFile::getInstances($model, 'imageFile'));
+                        //запись название файла в базу
 //                    $model->image =$model->imageFile;
+                    }
+
+                } catch (Exception $e) {
+                    var_dump($e->getMessage());
                 }
-            } catch (Exception $e) {
-                var_dump($e->getMessage());
             }
             \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
             return $this->redirect(['index']);
 
-        }else {
+        } else {
             $model->loadDefaultValues();
         }
 
         return $this->render('create', [
             'model' => $model,
+            'upload' => $upload,
         ]);
     }
 
