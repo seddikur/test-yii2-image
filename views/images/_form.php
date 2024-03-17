@@ -8,48 +8,39 @@ use yii\widgets\ActiveForm;
 /** @var yii\widgets\ActiveForm $form */
 
 $form = ActiveForm::begin([
-//    'enableClientValidation' => false,
+    'enableClientValidation' => true,
 //    'enableAjaxValidation' => true,
     'options' => [
         'enctype' => 'multipart/form-data',
-        'class' => 'form-group-sm',
-        'id' => 'catalog-item-form'
+//        'class' => 'form-group-sm',
+//        'id' => 'catalog-item-form'
     ]
 ]);
 
 ?>
 
-    <div class="catalog-img-gallery">
-        <?php if (!empty($model->images)) : ?>
+    <div class="img-gallery">
+        <?php if (!$model->isNewRecord) : ?>
+            <img src="<?= $model->getImagePath() ?>" alt="" width="300">
 
-            <div class="row">
-                <div class="col-lg-12">
-                    <?php foreach ($model->images as $img) : ?>
-                        <div class="thumbnail-sm pull-left">
-                            <img src="<?= $img->thumb ?>"/>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <div class="row">
-                <hr/>
-            </div>
-        <?php else : ?>
-            <!-- START Галерея изображений Lightbox -->
-            <?= $this->render('_gallery', [
-                'model' => $model
-            ]) ?>
-            <!-- END Галерея изображений Lightbox -->
+            <a href="<?= \yii\helpers\Url::to(['/image/remove-image', 'imageId' => $model->id]) ?>"
+               class="btn btn-xs btn-danger catalog-item-remove-img"
+               style="
+                   position:relative;
+                   top:-57px;
+                   right:55px;
+                    margin:0;"
+               data-toggle="tooltip"
+               title="Удалить изображение">
+                <i class="bi bi-x"></i>
+            </a>
         <?php endif ?>
     </div>
 
-<?= $this->render('_imgmodal', [
-    'model' => $model
-]) ?>
 
-    <div class="alert alert-warning " role="alert">
-        Одновременно использовать <b>2 способа сохранения</b> изображения нельзя!
-    </div>
+    <!--    <div class="alert alert-warning " role="alert">-->
+    <!--        Одновременно использовать <b>2 способа сохранения</b> изображения нельзя!-->
+    <!--    </div>-->
 
 <?php
 echo \yii\bootstrap5\Tabs::widget([

@@ -92,7 +92,8 @@ class ImagesController extends Controller
         $model = new Images();
 
         if ($this->request->isPost) {
-            if ($model->load($this->request->post())) {
+
+            if ($model->load($this->request->post()) && $model->validate()) {
                 try {
                     //Сохранить загруженное изображение по ссылке
                     $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
@@ -103,7 +104,7 @@ class ImagesController extends Controller
                         $model->loadImagesByUrl($imgUrls);
                     } else {
                         //Сохранить загруженное изображение при добалении
-                        $model->loadImages(UploadedFile::getInstances($model, 'images'));
+                        $model->loadImages(UploadedFile::getInstances($model, 'imageFile'));
                     }
                 } catch (Exception $e) {
                     var_dump($e->getMessage());
@@ -111,7 +112,7 @@ class ImagesController extends Controller
                 \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
                 return $this->redirect(['index']);
             }
-        } else {
+        }  else {
             $model->loadDefaultValues();
         }
 

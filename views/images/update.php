@@ -7,7 +7,7 @@ use yii\helpers\Html;
 
 $this->title = 'Update Images: ' . $model->filename;
 $this->params['breadcrumbs'][] = ['label' => 'Images', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->filename, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = $this->title;
 
 ?>
 <div class="images-update">

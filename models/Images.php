@@ -5,6 +5,7 @@ namespace app\models;
 use app\helpers\ImageHelper;
 use Symfony\Component\Filesystem\Filesystem;
 use Yii;
+use yii\behaviors\TimestampBehavior;
 use yii\helpers\VarDumper;
 use yii\web\UploadedFile;
 
@@ -15,6 +16,7 @@ use yii\web\UploadedFile;
  * @property string $filename Название
  * @property string $img_url Путь до изображения
  * @property int|null $by_default Картинка по умолчанию
+ * @property string $thumb Миниатюра изображения
  * @property int|null $id_objects id objects
  * @property int|null $created_at Дата создания
  */
@@ -48,16 +50,31 @@ class Images extends \yii\db\ActiveRecord
     }
 
     /**
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => TimestampBehavior::class,
+                'attributes' => [
+                    self::EVENT_BEFORE_INSERT => ['created_at'],
+                ],
+                'preserveNonEmptyValues' => true,
+            ],
+        ];
+    }
+
+    /**
      * Правила валидации полей
      * @return array
      */
     public function rules()
     {
         return [
-            [['filename', 'img_url'], 'required'],
+//            [['imageFile'], 'required', 'message' => 'Необходимо выбрать «Картинку»'],
             [['filename', 'img_url'], 'string', 'max' => 100],
-            [['filename', 'img_url'], 'required'],
-            ['filename', 'unique'], //проверка на уникальность
+//            ['filename', 'unique'], //проверка на уникальность
 
             [['by_default', 'id_objects', 'created_at'], 'integer'],
 
@@ -85,20 +102,20 @@ class Images extends \yii\db\ActiveRecord
             'img_url' => 'Путь до изображения',
             'by_default' => 'Картинка по умолчанию',
             'id_objects' => 'id objects',
+            'imageFile' => 'Файл',
             'created_at' => 'Дата создания',
         ];
     }
 
     /**
      * Загрузка изображений и сохранение в базу данных.
-     * @param UploadedFile[] $images
+     * @param UploadedFile[] $imageFile
      */
-    public function loadImages($images): void
+    public function loadImages($imageFile): void
     {
-        VarDumper::dump($images, 10, true); die();
         $imagesModels = [];
         $transaction = Yii::$app->db->beginTransaction();
-        foreach ($images as $file) {
+        foreach ($imageFile as $file) {
             $modelImage = new Images;
             $modelImage->filename = \md5($file->baseName) . '.' . $file->extension;
             $modelImage->img_url = self::$urlPrefix;
@@ -169,7 +186,7 @@ class Images extends \yii\db\ActiveRecord
     public function getImagePath()
     {
         return (is_file(\Yii::getAlias($this->getDirPath()) . $this->filename))
-            ? '/uploads/' . $this->id . '/' . $this->filename
+            ? '/uploads/' . $this->filename
             : '';
     }
 
@@ -180,7 +197,7 @@ class Images extends \yii\db\ActiveRecord
     public function getThumb()
     {
         return (is_file(\Yii::getAlias($this->getDirPath()) . 'thumbs/' . $this->filename))
-            ? '/uploads/' . $this->id . '/thumbs/' . $this->filename
+            ? '/uploads/' . '/thumbs/' . $this->filename
             : '';
     }
 
@@ -190,7 +207,7 @@ class Images extends \yii\db\ActiveRecord
      */
     public function getDirPath()
     {
-        return self::$uploadBasePath . $this->id . DIRECTORY_SEPARATOR;
+        return self::$uploadBasePath . DIRECTORY_SEPARATOR;
     }
 
     /**

@@ -5,10 +5,21 @@ use kartik\file\FileInput;
 /** @var app\models\Images $model */
 /** @var yii\widgets\ActiveForm $form */
 ?>
+<style>
+    .help-block{
+
+        width: 100%;
+        margin-top: 0.25rem;
+        font-size: 0.875em;
+        color: var(--bs-form-invalid-color);
+
+    }
+</style>
  <!-- START Форма для загрузки изображений -->
-            <?= $form->field($model, 'images[]')->widget(FileInput::class, [
+
+            <?= $form->field($model, 'imageFile[]')->widget(FileInput::class, [
                 'options' => [
-                    'accept' => ['image/png', 'image/jpeg'],
+                    'accept' => ['image/*'],
                     'multiple'=>true
                 ],
                 'pluginOptions' => [
@@ -17,9 +28,9 @@ use kartik\file\FileInput;
                     'showRemove' => true,
                     'showUpload' => true,
                     'removeClass' => 'btn btn-sm btn-default',
-//                    'removeIcon' => '<i class="bi bi-times-circle"></i> ',
+                    'removeIcon' => '<i class="bi bi-info-circle"></i> ',
                     'browseIcon' => 'Выбрать изображения',
-                    'browseClass' => 'btn btn-github',
+                    'browseClass' => 'btn btn-primary',
                     'browseLabel' => '',
                     'previewFileType' => 'image',
                     'maxFileCount' => 5,
