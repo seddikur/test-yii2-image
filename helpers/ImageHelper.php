@@ -185,7 +185,36 @@ final class ImageHelper
 //        }
     }
 
-
+    /**
+     * Возвращает массив с данными об изображении: путь до миниатюры, полный путь, относительный путь.
+     *
+     * @param array|Images $model
+     * @param string $key
+     *
+     * @return array
+     */
+    public static function images($model, $key = 'id') : array
+    {
+        if (isset($model['images']) && !empty($model['images'])) {
+            $imageFirst = $model['images'][0]['filename'];
+            foreach ($model['images'] as  $img) {
+                if($img['is_cover']){
+                    $imageFirst = $img['filename'];
+                }
+            }
+            if ($model['type'] == null || $model['type'] == '') {
+                $thumb = Images::makeThumbUrl($model[$key], $imageFirst);
+                $imgUrl = Images::makeUrl($model[$key], $imageFirst);
+                $fullPath = Images::makePath($model[$key], $imageFirst);
+            } else {
+                $thumb = Images::makeThumbUrl($model[$key], $imageFirst);
+                $imgUrl = Images::makeUrl($model[$key], $imageFirst);
+                $fullPath = Images::makePath($model[$key], $imageFirst);
+            }
+            return ['thumb' => $thumb, 'path' => $imgUrl, 'fullPath' => $fullPath];
+        }
+        return [];
+    }
 
 
 

@@ -3,12 +3,18 @@
 namespace app\controllers;
 
 use app\models\Images;
+use Symfony\Component\Filesystem\Filesystem;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveRecord;
+use yii\db\StaleObjectException;
+use yii\helpers\Url;
 use yii\helpers\VarDumper;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\Request;
+use yii\web\Response;
+use yii\web\UnprocessableEntityHttpException;
 use yii\web\UploadedFile;
 use Yii;
 use Exception;
@@ -159,6 +165,70 @@ class ImagesController extends Controller
         return $this->render('update', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * Удалить изображение.
+     * @param int $imageId
+     * @return array
+     * @throws UnprocessableEntityHttpException
+     * @throws StaleObjectException
+     */
+    public function actionRemoveImage(int $imageId): array
+    {
+        /** @var Request $request */
+        $request = Yii::$app->request;
+
+        // Находим изображение по его ID
+        $image = Images::findOne($imageId);
+        if (!$image) {
+            throw new UnprocessableEntityHttpException("Изображение с идентификатором {$imageId} не найдено.");
+        }
+
+
+        if (!empty($image->filename)) {
+            /** @var string $imagePath Абсолютный путь до изображения */
+            $imagePath = Yii::getAlias($image->getFullPath());
+            $thumbPath = Yii::getAlias($image->getFullPathThumb());
+
+        } else {
+            /** @var string $imagePath Абсолютный путь до изображения */
+            $imagePath = Yii::getAlias("@webroot/{$image->img_url}");
+        }
+
+        $fs = new Filesystem();
+
+        $isDeleted = false;
+        if ($fs->exists($imagePath)) {
+            /** Удаляем изображение из БД */
+            if ($image->delete()) {
+
+                if (!empty($imagePath) && $fs->exists($imagePath)) {
+                    // удаление файла
+                    $fs->remove($imagePath);
+                }
+
+                if (!empty($thumbPath) && $fs->exists($thumbPath)) {
+                    // удаление миниатюры
+                    $fs->remove($thumbPath);
+                }
+
+                $isDeleted = true;
+            }
+        } else {
+            $image->delete();
+            $isDeleted = true;
+        }
+        //        \Yii::$app->noty->success("Изображение удалено");
+
+        if ($isDeleted) {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                'status' => 'deleted',
+            ];
+        }
+        throw new UnprocessableEntityHttpException('error');
+
     }
 
     /**

@@ -23,15 +23,13 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <?php
+    echo '<p> Галерея </p>';
     foreach ($dataProvider->getModels() as $images) {
         echo Lightbox::widget([
             'files' => [
                 [
-                    'thumb' => $images->img_url . '/thumbs/' . $images->filename,
-                    'original' => $images->img_url . '/' . $images->filename,
-                    'linkOptions' => [
-                        'data-lightbox' => $images->img_url . $images->id,
-                    ],
+                    'thumb' => $images->getThumb(),
+                    'original' => $images->getImagePath(),
                     'title' => $images->filename,
                 ],
             ]
@@ -44,13 +42,44 @@ $this->params['breadcrumbs'][] = $this->title;
     ?>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
+        'pager' => [
+            'class' => 'yii\bootstrap5\LinkPager'
+        ],
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
 
             'id',
+            [
+                'header' => '<i class="bi bi-card-image"></i>',
+                'options' => ['width' => 40],
+//                'content' => function ($model) use ($settingsForm) {
+                'content' => function ($model) {
+                    if (!empty($model['filename'])) {
+                        //$model['img_url']
+
+                        $imgContent = Html::tag('div', Html::img(Images::makePath($model['filename']), [
+                            'width' => '40px',
+                            'height' => '40px',
+//                            'style' => 'width:50px;height: 50px'
+                        ]), [
+//                            'style' => "height: 40px !important; width: 40px !important",
+                            'class' => 'thumbnail-sm pull-left'
+                        ]);
+                    } else {
+                        $imgContent = Html::tag('span', '', [
+                            'class' => 'bi bi-card-image'
+                        ]);
+                    }
+
+                    return Html::tag('span', $imgContent, [
+                        'class' => 'image-wrapper'
+                    ]);
+                },
+                'format' => 'raw'
+            ],
             'filename',
             'img_url',
-            'created_at:date',
+            'created_at:datetime',
             [
                 'class' => ActionColumn::className(),
                 'urlCreator' => function ($action, Images $model, $key, $index, $column) {

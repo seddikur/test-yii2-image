@@ -3,6 +3,7 @@
 namespace app\models;
 
 use app\helpers\ImageHelper;
+use app\helpers\HelperName;
 use Symfony\Component\Filesystem\Filesystem;
 use Yii;
 use yii\behaviors\TimestampBehavior;
@@ -117,7 +118,22 @@ class Images extends \yii\db\ActiveRecord
         $transaction = Yii::$app->db->beginTransaction();
         foreach ($imageFile as $file) {
             $modelImage = new Images;
-            $modelImage->filename = \md5($file->baseName) . '.' . $file->extension;
+            //название файла
+            $file_name =HelperName::transliteration($file->baseName);
+            //\md5($file->baseName) . mt_rand(0, 3) .'.' . $file->extension;
+
+//            echo $file_name;
+//            VarDumper::dump(self::findOne(['filename'=>$file_name])); die();
+            //проверяем по базе на уникальность
+           if (self::findOne(['filename'=>$file_name.'.' . $file->extension]))
+            {
+                $modelImage->filename = $file_name . mt_rand(0, 3) .'.' . $file->extension;
+
+            }else{
+               $modelImage->filename = $file_name.'.' . $file->extension;
+
+           }
+
             $modelImage->img_url = self::$urlPrefix;
             $modelImage->created_at = time();
             $modelImage->uploadedFile = $file;
@@ -128,6 +144,7 @@ class Images extends \yii\db\ActiveRecord
         $transaction->commit();
         $this->populateRelation('images', $imagesModels);
     }
+
     /**
      * Сохранить загруженное изображение в директорию
      */
@@ -216,8 +233,28 @@ class Images extends \yii\db\ActiveRecord
      */
     public function getFullPath()
     {
-        return self::$uploadBasePath . $this->id . DIRECTORY_SEPARATOR . $this->filename;
+        return self::$uploadBasePath . DIRECTORY_SEPARATOR . $this->filename;
     }
+
+    /**
+     * Полный путь до миниатюры
+     * @return string
+     */
+    public function getFullPathThumb()
+    {
+        return self::$uploadBasePath .  '/thumbs/' . $this->filename;
+    }
+
+    /**
+     * Абсолютный путь до изображения.
+     * @param string $file
+     * @return string
+     */
+    public static function makePath( string $file) : string
+    {
+        return self::$urlPrefix  . DIRECTORY_SEPARATOR . $file;
+    }
+
 
     /**
      * Загрузка изображений через url.

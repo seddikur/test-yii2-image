@@ -9,11 +9,8 @@ use yii\widgets\ActiveForm;
 
 $form = ActiveForm::begin([
     'enableClientValidation' => true,
-//    'enableAjaxValidation' => true,
     'options' => [
         'enctype' => 'multipart/form-data',
-//        'class' => 'form-group-sm',
-//        'id' => 'catalog-item-form'
     ]
 ]);
 
@@ -23,7 +20,7 @@ $form = ActiveForm::begin([
         <?php if (!$model->isNewRecord) : ?>
             <img src="<?= $model->getImagePath() ?>" alt="" width="300">
 
-            <a href="<?= \yii\helpers\Url::to(['/image/remove-image', 'imageId' => $model->id]) ?>"
+            <a href="<?= \yii\helpers\Url::to(['/images/remove-image', 'imageId' => $model->id]) ?>"
                class="btn btn-xs btn-danger catalog-item-remove-img"
                style="
                    position:relative;
