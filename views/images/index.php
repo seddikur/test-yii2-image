@@ -6,6 +6,7 @@ use yii\helpers\Url;
 use yii\grid\ActionColumn;
 use yii\grid\GridView;
 use branchonline\lightbox\Lightbox;
+use app\helpers\ImageHelper;
 
 /** @var yii\web\View $this */
 /** @var yii\data\ActiveDataProvider $dataProvider */
@@ -37,9 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     }
     ?>
-    <?
 
-    ?>
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'pager' => [
@@ -52,15 +51,11 @@ $this->params['breadcrumbs'][] = $this->title;
             [
                 'header' => '<i class="bi bi-card-image"></i>',
                 'options' => ['width' => 40],
-//                'content' => function ($model) use ($settingsForm) {
                 'content' => function ($model) {
                     if (!empty($model['filename'])) {
-                        //$model['img_url']
-
                         $imgContent = Html::tag('div', Html::img(Images::makePath($model['filename']), [
                             'width' => '40px',
                             'height' => '40px',
-//                            'style' => 'width:50px;height: 50px'
                         ]), [
 //                            'style' => "height: 40px !important; width: 40px !important",
                             'class' => 'thumbnail-sm pull-left'
@@ -78,6 +73,44 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw'
             ],
             'filename',
+
+            [
+                'header' => 'Скачать',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return Html::a(
+                        '<i class="bi bi-arrow-down-circle"></i>',
+//                        ['download', 'file'=>$model->filename],
+                        ['file', 'filename'=>$model->filename],
+                        ['target' => '_blank']
+                    );
+                }
+            ],
+            [
+                'header' => 'Скачать (.zip)',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return Html::a(
+                        '<i class="bi bi-file-earmark-zip"></i>',
+                        ['zip', 'filename'=>$model->filename],
+                        ['target' => '_blank']
+                    );
+                }
+            ],
+            [
+                'label' => 'Расширение',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return ImageHelper::extension($model->filename);
+                }
+            ],
+            [
+                'label' => 'Размер',
+                'format' => 'raw',
+                'value' => function ($model) {
+                    return ImageHelper::size($model->filename);
+                }
+            ],
             'img_url',
             'created_at:datetime',
             [
@@ -88,6 +121,7 @@ $this->params['breadcrumbs'][] = $this->title;
             ],
         ],
     ]); ?>
+
 
 
 </div>

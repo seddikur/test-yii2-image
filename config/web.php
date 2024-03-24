@@ -7,12 +7,12 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
-    'language'=>'ru-RU',
-    'sourceLanguage'=>'ru-RU',
+    'language' => 'ru-RU',
+    'sourceLanguage' => 'ru-RU',
 
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
+        '@npm' => '@vendor/npm-asset',
     ],
     'components' => [
         'imgload' => [
@@ -59,6 +59,18 @@ $config = [
             ],
         ],
 
+    ],
+    'modules' => [
+
+        // http://localhost:8000/api/v1
+        'api' => [
+            'class' => 'app\modules\api\Module',
+            'modules' => [
+                'v1' => [
+                    'class' => 'app\modules\api\v1\Module',
+                ]
+            ],
+        ],
     ],
     'params' => $params,
 ];

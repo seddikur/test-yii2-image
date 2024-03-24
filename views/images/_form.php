@@ -47,11 +47,11 @@ echo \yii\bootstrap5\Tabs::widget([
             'content' => $this->render('_device', ['model' => $model, 'form' => $form]),
             'active' => true
         ],
-        [
-            'label' => 'Загрузка по ссылке',
-            'content' => $this->render('_src', ['model' => $model, 'form' => $form]),
-            'disabled' => true
-        ],
+//        [
+//            'label' => 'Загрузка по ссылке',
+//            'content' => $this->render('_src', ['model' => $model, 'form' => $form]),
+//            'disabled' => true
+//        ],
 
     ],
 ]);
@@ -59,6 +59,8 @@ echo \yii\bootstrap5\Tabs::widget([
 
 
     <div class="form-group">
-        <?= Html::submitButton('Сохранить', ['class' => 'btn btn-success']) ?>
+        <?= Html::a('<i class="bi bi-chevron-double-left"></i> '.' Отмена', ['index'], ['class' => 'btn btn-primary']) ?>
+        <?= Html::submitButton('<i class="bi bi-floppy"></i> '.'Сохранить', ['class' => 'btn btn-success']) ?>
+
     </div>
 <?php ActiveForm::end(); ?>

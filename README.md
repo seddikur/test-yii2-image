@@ -34,12 +34,10 @@
 
 http://localhost:8000/v1/
 
-GET /article: получение постранично списка всех статей;
+получение списка всех картинок;
 
-POST /article: создание новой статьи;
+http://localhost:8000/api/v1/image/index
 
-GET /article/123: получение информации по статьие с id равным 123;
+получение информации по картинке с id равным 11
 
-PATCH /article/123 и PUT /article/123: изменение информации по статье с id равным 123;
-
-DELETE /article/123: удаление статьи с id равным 123;
+http://localhost:8000/api/v1/image/view?id=11

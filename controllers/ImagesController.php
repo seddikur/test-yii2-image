@@ -118,7 +118,7 @@ class ImagesController extends Controller
                 \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
                 return $this->redirect(['index']);
             }
-        }  else {
+        } else {
             $model->loadDefaultValues();
         }
 
@@ -138,28 +138,29 @@ class ImagesController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->request->isPost && $model->load($this->request->post()) ) {
+        if ($model->load($this->request->post()) && $model->validate()) {
 
-                try {
-                    //Сохранить загруженное изображение по ссылке
-                    $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
-                        Yii::$app->request->post('current_img_url') :
-                        Yii::$app->request->post('img_url');
-                    if ($imgUrlStr) {
-                        $imgUrls = explode(';,;', $imgUrlStr);
-                        $model->loadImagesByUrl($imgUrls);
-                    } else {
-                        //Сохранить загруженное изображение при добалении
-                        $model->loadImages(UploadedFile::getInstances(new Images(), 'images'));
-                    }
-
-                } catch (Exception $e) {
-                    echo \yii\helpers\Json::encode($model->getErrors());
-                    die();
+            try {
+                //Сохранить загруженное изображение по ссылке
+                $imgUrlStr = !empty(Yii::$app->request->post('current_img_url')) ?
+                    Yii::$app->request->post('current_img_url') :
+                    Yii::$app->request->post('img_url');
+                if ($imgUrlStr) {
+                    $imgUrls = explode(';,;', $imgUrlStr);
+                    $model->loadImagesByUrl($imgUrls);
+                } else {
+                    $this->DeleteImage($id);
+                    //Сохранить загруженное изображение при добалении
+                    $model->loadImages(UploadedFile::getInstances(new Images(), 'imageFile'));
                 }
-             \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
-                return $this->redirect(['index']);
+
+            } catch (Exception $e) {
+                echo \yii\helpers\Json::encode($model->getErrors());
+                die();
             }
+            \Yii::$app->session->setFlash('success', 'Картинка успешно загружена');
+            return $this->redirect(['index']);
+        }
 
 
         return $this->render('update', [
@@ -167,14 +168,26 @@ class ImagesController extends Controller
         ]);
     }
 
+
     /**
-     * Удалить изображение.
+     * Удалить изображение по кнопке
      * @param int $imageId
-     * @return array
+     * @return Response
      * @throws UnprocessableEntityHttpException
-     * @throws StaleObjectException
      */
-    public function actionRemoveImage(int $imageId): array
+    public function actionRemoveImage(int $imageId)
+    {
+        return $this->DeleteImage($imageId);
+    }
+
+    /**
+     * @param int $imageId
+     * @return Response
+     * @throws StaleObjectException
+     * @throws UnprocessableEntityHttpException
+     * @throws \Throwable
+     */
+    public function DeleteImage(int $imageId)
     {
         /** @var Request $request */
         $request = Yii::$app->request;
@@ -219,15 +232,8 @@ class ImagesController extends Controller
             $image->delete();
             $isDeleted = true;
         }
-        //        \Yii::$app->noty->success("Изображение удалено");
-
-        if ($isDeleted) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return [
-                'status' => 'deleted',
-            ];
-        }
-        throw new UnprocessableEntityHttpException('error');
+        \Yii::$app->session->setFlash('success', 'Картинка удалена');
+        return $this->redirect(['index']);
 
     }
 
@@ -240,8 +246,7 @@ class ImagesController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
+        $this->DeleteImage($id);
         return $this->redirect(['index']);
     }
 
@@ -259,5 +264,72 @@ class ImagesController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+
+    /**
+     * Скачивание картинки
+     * @param string $file
+     * @return void
+     */
+    public static function actionDownload(string $file)
+    {
+        if ($file !== NULL) {
+            //  путь до файла на сервере
+            $currentFile = \Yii::getAlias(Images::$uploadBasePath . DIRECTORY_SEPARATOR) . $file;
+            if (is_file($currentFile)) {
+                header("Content-Type: application/octet-stream");
+                header("Accept-Ranges: bytes");
+                header("Content-Length: " . filesize($currentFile));
+                header("Content-Disposition: attachment; filename=" . $file);
+                readfile($currentFile);
+            };
+        } else {
+            $file->redirect('index');
+        };
+    }
+
+    /**
+     * Скачаивание картиники
+     * @param $filename
+     * @return \yii\console\Response|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionFile($filename)
+    {
+        $storagePath = Yii::getAlias(Images::$uploadBasePath);
+
+        if (!is_file($storagePath . DIRECTORY_SEPARATOR . $filename)) {
+            throw new \yii\web\NotFoundHttpException('Нет такой картинки.');
+        }
+        return Yii::$app->response->sendFile($storagePath . DIRECTORY_SEPARATOR . $filename, $filename);
+    }
+
+    /**
+     * Скачаивание картиники в zip
+     * @param $filename
+     * @return \yii\console\Response|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionZip($filename)
+    {
+        $storagePath = Yii::getAlias(Images::$uploadBasePath);
+        $zipPath = $storagePath . '/zip/image.zip';
+        //проверка - если zip есть удалим
+        if (is_file($zipPath)) {
+            unlink($zipPath);
+        }
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, $zip::CREATE) === TRUE) {
+            $zip->addFile($storagePath . DIRECTORY_SEPARATOR . $filename, $filename);
+            $zip->close();
+//                Yii::$app->response->sendFile($zipPath, 'image.zip', ['inline' => false]);
+        } else {
+            // Error opening the zip file
+            Yii::$app->session->setFlash('error', 'Ошибка создания zip file.');
+            return $this->redirect(['index']);
+
+        }
+        return Yii::$app->response->sendFile($zipPath, 'image.zip');
     }
 }

@@ -82,14 +82,23 @@ final class ImageHelper
 
     /**
      * Получить расширение файла.
-     *
      * @param string $path Путь до файла
-     *
      * @return string
      */
     public static function extension(string $path) : string
     {
         return \strrchr($path, '.');
+    }
+
+    /**
+     * Получить размер файла.
+     * @param string $path
+     * @return string
+     */
+    public static function size(string $path) : string
+    {
+        $size = filesize(Yii::getAlias('@webroot').'/uploads/'.$path);
+        return Yii::$app->formatter->asShortSize($size);
     }
 
     /**
@@ -215,7 +224,5 @@ final class ImageHelper
         }
         return [];
     }
-
-
 
 }

@@ -174,27 +174,6 @@ class Images extends \yii\db\ActiveRecord
         }
     }
 
-    /**
-     * Конвертирует изображение в base64.
-     * @param $path - путь к изображению
-     * @return string|null изображения
-     */
-    public static function convertImageToBase64($path) :? string
-    {
-        $url = $path;
-        $curl_handle=curl_init();
-        curl_setopt($curl_handle, CURLOPT_URL,$url);
-        curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, 2);
-        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Get img');
-        $img = curl_exec($curl_handle);
-        curl_close($curl_handle);
-        if($img) {
-            $imageData = base64_encode($img);
-            return "data:image/png;base64,{$imageData}";
-        }
-        return null;
-    }
 
     /**
      * Ссылка на изображение
@@ -246,17 +225,6 @@ class Images extends \yii\db\ActiveRecord
     }
 
     /**
-     * Абсолютный путь до изображения.
-     * @param string $file
-     * @return string
-     */
-    public static function makePath( string $file) : string
-    {
-        return self::$urlPrefix  . DIRECTORY_SEPARATOR . $file;
-    }
-
-
-    /**
      * Загрузка изображений через url.
      * @param array $imageUrl
      */
@@ -280,4 +248,62 @@ class Images extends \yii\db\ActiveRecord
         $transaction->commit();
         $this->populateRelation('images', $imagesModels);
     }
+
+    /*****************************************************************************************************************
+     *                                                                                                  STATIC METHODS
+     *****************************************************************************************************************/
+
+    /**
+     * Абсолютный путь до изображения.
+     * @param string $file
+     * @return string
+     */
+    public static function makePath( string $file) : string
+    {
+        return self::$urlPrefix  . DIRECTORY_SEPARATOR . $file;
+    }
+
+    /**
+     * @param $file
+     * @return string
+     */
+    public static function makeThumbUrl($file)
+    {
+        return self::$urlPrefix .  DIRECTORY_SEPARATOR . 'thumbs/' . $file;
+    }
+
+    /**
+     * @param $file
+     * @return string
+     */
+    public static function makeUrl($file)
+    {
+        return self::$urlPrefix .  DIRECTORY_SEPARATOR . $file;
+    }
+
+    /**
+     * Конвертирует изображение в base64.
+     * @param $path - путь к изображению
+     * @return string|null изображения
+     */
+    public static function convertImageToBase64($path) :? string
+    {
+        $url = $path;
+        $curl_handle=curl_init();
+        curl_setopt($curl_handle, CURLOPT_URL,$url);
+        curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Get img');
+        $img = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        if($img) {
+            $imageData = base64_encode($img);
+            return "data:image/png;base64,{$imageData}";
+        }
+        return null;
+    }
+
+    /*****************************************************************************************************************
+     *                                                                                                       RELATIONS
+     *****************************************************************************************************************/
 }
