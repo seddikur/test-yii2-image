@@ -26,7 +26,7 @@
 
 # Порядок установки проекта
 
-* Клонирование проекта `` https://github.com/seddikur/test-yii2-image.git``
+* Клонирование проекта `` git clone https://github.com/seddikur/test-yii2-image.git``
 * Запуск Docker `` docker compose up -d ``
 * Переход в контейнер  `` docker-compose exec -it php bash ``
 * Запуск установки расширений yii2 `` composer install ``
